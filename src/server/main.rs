@@ -12,9 +12,13 @@ fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
           Ok(num_bytes) => {
             if num_bytes > 0 {
                 file.write(&buf[0..num_bytes]);
+            } else {
+                println!("Finished reading from socket");
+                break;
             }
           },
           Err(_) => {
+            println!("Error reading from socket");
             break;
           }
         }
@@ -24,6 +28,8 @@ fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
 
 fn listen() -> io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8001")?;
+
+    println!("Now listening for clients!");
 
     // accept connections and process them serially
     for stream in listener.incoming() {
