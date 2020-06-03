@@ -8,6 +8,8 @@ edition = "2018"
 
 [dependencies]
 clap = "3.0.0-beta.1"
+iced = "0.1"
+chrono = "0.4"
 
 [[bin]]
 name = "transferrous-server"
@@ -16,3 +18,7 @@ path = "src/server/main.rs"
 [[bin]]
 name = "transferrous-client"
 path = "src/client/main.rs"
+
+[[bin]]
+name = "transferrous-client-gui"
+path = "src/client/gui-main.rs"
