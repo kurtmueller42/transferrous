@@ -3,12 +3,23 @@ use std::io;
 use std::net::{TcpListener, TcpStream};
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
+
+const CHUNK_SIZE: usize = 65536;
 
 fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
-    let mut file = File::create("transferrous.out")?;
-    let mut buf = vec![0; 10000];
+    let mut reader = BufReader::new(stream);
+    let mut buf = vec![0; CHUNK_SIZE];
+
+    let mut outfile_name = String::new();
+    
+    reader.read_line(&mut outfile_name);
+    &outfile_name.pop();
+
+    let mut file = File::create(format!("{}.out", &outfile_name))?;
+
     loop {
-        match stream.read(buf.as_mut_slice()) {
+        match reader.read(buf.as_mut_slice()) {
           Ok(num_bytes) => {
             if num_bytes > 0 {
                 file.write(&buf[0..num_bytes]);
