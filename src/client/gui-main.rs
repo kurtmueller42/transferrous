@@ -1,4 +1,4 @@
-use iced::{slider, Command, button, Button, Column, Element, ProgressBar, Sandbox, Text, Settings, Slider};
+use iced::{slider, Command, button, Button, Column, Element, ProgressBar, Application, Text, Settings, Slider};
 use nfd::Response;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -21,30 +21,34 @@ enum Message {
     OpenedFile(Option<String>),
 }
 
-impl Sandbox for Progress {
+impl Application for Progress {
+    type Executor = iced::executor::Default;
     type Message = Message;
+    type Flags = ();
 
-    fn new() -> Self {
-        Self::default()
+    fn new(_flags: ()) -> (Self, Command<Message>) {
+        (Self::default(), Command::none())
     }
 
     fn title(&self) -> String {
         String::from("A simple Progressbar")
     }
 
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> Command<Message> {
         println!("\n\nMESSAGE RECEIVED:\n\n{:#?}", message);
 
         match message {
             Message::SliderChanged(x) => self.value = x,
             Message::OpenFile => {
-                Command::perform(send_file(), Message::OpenedFile);
+                return Command::perform(send_file(), Message::OpenedFile);
             },
             Message::OpenedFile(foo) => {
                 // TODO
                 self.value = 100.0 - self.value
             }
         }
+
+        Command::none()
     }
 
     fn view(&mut self) -> Element<Message> {
