@@ -33,6 +33,8 @@ impl Sandbox for Progress {
     }
 
     fn update(&mut self, message: Message) {
+        println!("\n\nMESSAGE RECEIVED:\n\n{:#?}", message);
+
         match message {
             Message::SliderChanged(x) => self.value = x,
             Message::OpenFile => {
