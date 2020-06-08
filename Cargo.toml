@@ -10,6 +10,7 @@ edition = "2018"
 clap = "3.0.0-beta.1"
 iced = "0.1"
 chrono = "0.4"
+nfd = "0.0.4"
 
 [[bin]]
 name = "transferrous-server"
