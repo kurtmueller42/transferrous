@@ -11,6 +11,7 @@ clap = "3.0.0-beta.1"
 iced = "0.1"
 chrono = "0.4"
 nfd = "0.0.4"
+tokio = { version = "0.2", features = ["full"]}
 
 [[bin]]
 name = "transferrous-server"
