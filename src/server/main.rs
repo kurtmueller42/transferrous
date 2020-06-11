@@ -15,26 +15,30 @@ async fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
 
     let mut outfile_name = String::new();
     
-    reader.read_line(&mut outfile_name);
+    reader.read_line(&mut outfile_name).await?;
     &outfile_name.pop();
 
+    println!("Printing to {}.out", &outfile_name);
     let mut file = File::create(format!("{}.out", &outfile_name))?;
 
+    let mut total_bytes: usize = 0;
     loop {
         match reader.read(buf.as_mut_slice()).await {
-
-          Ok(num_bytes) => {
-            if num_bytes > 0 {
-                file.write(&buf[0..num_bytes]);
-            } else {
-                println!("Finished reading from socket");
+            Ok(num_bytes) => {
+                if num_bytes > 0 {
+                    let out_bytes = file.write(&buf[0..num_bytes])?;
+                    total_bytes += out_bytes;
+                    println!("Wrote {} bytes to file", out_bytes);
+                } else {
+                    println!("Finished reading from socket");
+                    println!("Total bytes written were {}", total_bytes);
+                    break;
+                }
+            },
+            Err(_) => {
+                println!("Error reading from socket");
                 break;
             }
-          },
-          Err(_) => {
-            println!("Error reading from socket");
-            break;
-          }
         }
         
       }
@@ -51,7 +55,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let (mut socket, _) = listener.accept().await?;
 
         tokio::spawn(async move {
-            std::thread::sleep(std::time::Duration::new(10,0));
             handle_client(socket).await
         });
 

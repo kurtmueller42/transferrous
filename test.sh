@@ -1,8 +1,12 @@
 #!/bin/bash
-pushd testfiles
+pushd test_directory
+
+rm ./*.out
 
 ./transferrous-server >/dev/null 2>&1 &
 PID=$!
+
+sleep 0.2
 
 files=`ls *.in`
 
