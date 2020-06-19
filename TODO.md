@@ -3,10 +3,11 @@
 
 # Small TODO
 
- * Add a message type and struct for logging. Hold some in-memory data store of all logs and display the log in the UI.
- * * new todo: emit logs on all meaningful-to-user behavior
- * * new todo: after persistence is done, persist logs
- * * new todo: auto prune logs at a certain size
+ * after persistence is done, persist logs
+
+ * auto prune logs at a certain size
+
+ * Display logs to user on UI
 
  * "open file" adds to a store of "file to send" list. Display these files in the UI
 

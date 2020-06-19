@@ -1,17 +1,40 @@
-use iced::{slider, Command, button, Button, Column, Element, Application, Text, Settings};
+use iced::{Command, button, Button, Column, Element, Application, Text, Settings};
 use nfd::Response;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 pub fn main() {
-    Progress::run(Settings::default())
+    TransferrousGui::run(Settings::default())
+}
+
+#[derive(Debug, Clone)]
+enum LogKind {
+    ChoseFile{ file_name: std::ffi::OsString }
+}
+#[derive(Debug)]
+struct LogMessage {
+    kind: LogKind,
+    timestamp: SystemTime
+}
+
+#[derive(Debug)]
+struct TransferrousLog {
+    messages: Vec<LogMessage>
+}
+
+impl Default for TransferrousLog {
+    fn default() -> Self {
+        Self {
+            messages: vec!()
+        }
+    }
 }
 
 #[derive(Default)]
-struct Progress { 
-    value: f32,
-    progress_bar_slider: slider::State,
+struct TransferrousGui { 
     button_open: button::State,
+    log: TransferrousLog,
 }
 
 #[derive(Debug, Clone)]
@@ -20,7 +43,7 @@ enum Message {
     FileChosen(Option<PathBuf>),
 }
 
-impl Application for Progress {
+impl Application for TransferrousGui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = ();
@@ -35,14 +58,22 @@ impl Application for Progress {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         println!("\n\nMESSAGE RECEIVED:\n\n{:#?}", message);
+        
+        let mut messages: Vec<Command<Message>> = vec!();
 
         match message {
             Message::SendFile => {
-                return Command::perform(send_file(), Message::FileChosen);
+                messages.push(Command::perform(send_file(), Message::FileChosen))
             },
             Message::FileChosen(path) => {
                 match path {
                     Some(pathbuf) => {
+                        let log_kind = LogKind::ChoseFile {
+                            file_name: pathbuf.as_os_str().to_owned()
+                        };
+                        create_log_message(self, log_kind);
+
+                        // TODO
                         println!("File chosen: {}", pathbuf.to_str().unwrap());
                     }
                     None => ()
@@ -50,7 +81,7 @@ impl Application for Progress {
             }
         }
 
-        Command::none()
+        Command::batch(messages)
     }
 
     fn view(&mut self) -> Element<Message> {
@@ -64,6 +95,13 @@ impl Application for Progress {
     }
 }
 
+fn create_log_message(gui: &mut TransferrousGui, kind: LogKind) {
+    gui.log.messages.push(LogMessage{
+        kind: kind,
+        timestamp: SystemTime::now()
+    });
+}
+
 async fn send_file() -> Option<PathBuf> {
     match choose_file().await {
         Ok(pathbuf) => Some(pathbuf),
@@ -72,7 +110,6 @@ async fn send_file() -> Option<PathBuf> {
 }
 
 async fn choose_file() -> Result<PathBuf, io::Error> {
-
     let result:nfd::Response = match async {
         return nfd::open_file_dialog(None, None)
     }.await {
