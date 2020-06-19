@@ -1,4 +1,4 @@
-use iced::{slider, Command, button, Button, Column, Element, ProgressBar, Application, Text, Settings, Slider};
+use iced::{slider, Command, button, Button, Column, Element, Application, Text, Settings};
 use nfd::Response;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -16,7 +16,6 @@ struct Progress {
 
 #[derive(Debug, Clone)]
 enum Message {
-    SliderChanged(f32),
     SendFile,
     FileChosen(Option<PathBuf>),
 }
@@ -31,14 +30,13 @@ impl Application for Progress {
     }
 
     fn title(&self) -> String {
-        String::from("A simple Progressbar")
+        String::from("Transferrous")
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
         println!("\n\nMESSAGE RECEIVED:\n\n{:#?}", message);
 
         match message {
-            Message::SliderChanged(x) => self.value = x,
             Message::SendFile => {
                 return Command::perform(send_file(), Message::FileChosen);
             },
@@ -49,7 +47,6 @@ impl Application for Progress {
                     }
                     None => ()
                 };
-                self.value = 100.0 - self.value
             }
         }
 
@@ -59,13 +56,6 @@ impl Application for Progress {
     fn view(&mut self) -> Element<Message> {
         Column::new()
             .padding(20)
-            .push(ProgressBar::new(0.0..=100.0, self.value))
-            .push(Slider::new(
-                &mut self.progress_bar_slider,
-                0.0..=100.0,
-                self.value,
-                Message::SliderChanged,
-            ))
             .push(Button::new(
                 &mut self.button_open, 
                 Text::new("Open"))
