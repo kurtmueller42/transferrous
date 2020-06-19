@@ -8,7 +8,7 @@ pub fn main() {
 }
 
 #[derive(Default)]
-struct Progress {
+struct Progress { 
     value: f32,
     progress_bar_slider: slider::State,
     button_open: button::State,
@@ -17,8 +17,8 @@ struct Progress {
 #[derive(Debug, Clone)]
 enum Message {
     SliderChanged(f32),
-    OpenFile,
-    OpenedFile(Option<String>),
+    SendFile,
+    FileChosen(Option<PathBuf>),
 }
 
 impl Application for Progress {
@@ -39,11 +39,16 @@ impl Application for Progress {
 
         match message {
             Message::SliderChanged(x) => self.value = x,
-            Message::OpenFile => {
-                return Command::perform(send_file(), Message::OpenedFile);
+            Message::SendFile => {
+                return Command::perform(send_file(), Message::FileChosen);
             },
-            Message::OpenedFile(foo) => {
-                // TODO
+            Message::FileChosen(path) => {
+                match path {
+                    Some(pathbuf) => {
+                        println!("File chosen: {}", pathbuf.to_str().unwrap());
+                    }
+                    None => ()
+                };
                 self.value = 100.0 - self.value
             }
         }
@@ -64,21 +69,22 @@ impl Application for Progress {
             .push(Button::new(
                 &mut self.button_open, 
                 Text::new("Open"))
-                .on_press(Message::OpenFile))
+                .on_press(Message::SendFile))
             .into()
     }
 }
 
-async fn send_file() -> Option<String> {
-    let res = choose_file().await;
-    // TODO
-    return None;
+async fn send_file() -> Option<PathBuf> {
+    match choose_file().await {
+        Ok(pathbuf) => Some(pathbuf),
+        Err(_) => None
+    }
 }
 
 async fn choose_file() -> Result<PathBuf, io::Error> {
 
     let result:nfd::Response = match async {
-        return nfd::open_file_dialog(Some("json"), None)
+        return nfd::open_file_dialog(None, None)
     }.await {
         Ok(result) => result,
         Err(e) => return Err(io::Error::new(
