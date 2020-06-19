@@ -14,6 +14,10 @@
  * allow sending files from the GUI
  * * Configure destination IP address in the GUI
 
+ * Break things out into a more coherent file structure instead of all in one for the GUI
+
+ * make log messages into a scrollables
+
 # medium TODO
 
  * Add persistence. Find some cross-platform equivalent of appdata and store a file and/or sqlite DB for data that shouldn't be per-session

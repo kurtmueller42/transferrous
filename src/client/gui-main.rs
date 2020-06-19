@@ -1,8 +1,10 @@
-use iced::{Command, button, Button, Column, Element, Application, Text, Settings};
+use iced::{Command, Container, HorizontalAlignment, button, Button, Column, Element, Length, Application, Text, Settings};
 use nfd::Response;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
+use chrono::DateTime;
+use chrono::offset::Local;
 
 pub fn main() {
     TransferrousGui::run(Settings::default())
@@ -12,10 +14,29 @@ pub fn main() {
 enum LogKind {
     ChoseFile{ file_name: std::ffi::OsString }
 }
+
+impl LogKind {
+    fn log_string(&self) -> String {
+        match self {
+            LogKind::ChoseFile{file_name} => {
+                format!("Selected file {}", file_name.to_str().unwrap())
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 struct LogMessage {
     kind: LogKind,
     timestamp: SystemTime
+}
+
+impl LogMessage {
+    fn log_string(&self) -> String {
+        let datetime: DateTime<Local> = self.timestamp.into();
+
+        format!("[{}] {}", datetime.format("%m/%d/%Y %T"), self.kind.log_string())
+    }
 }
 
 #[derive(Debug)]
@@ -85,12 +106,38 @@ impl Application for TransferrousGui {
     }
 
     fn view(&mut self) -> Element<Message> {
+        let title = Text::new("LOG")
+        .width(Length::Fill)
+        .size(20)
+        .color([0.5, 0.5, 0.5])
+        .horizontal_alignment(HorizontalAlignment::Right);
+
+        let mut messages = Column::new().spacing(5);
+        
+        for log_message in &self.log.messages {
+            messages = messages.push(
+                Text::new(log_message.log_string())
+                        .size(12)
+                        .width(Length::Fill)
+                        .horizontal_alignment(HorizontalAlignment::Right)
+                );
+        }
+
+        let log_content = Column::new()
+        .max_width(1000)
+        .spacing(20)
+        .push(title)
+        .push(messages);
+        
         Column::new()
             .padding(20)
             .push(Button::new(
                 &mut self.button_open, 
                 Text::new("Open"))
                 .on_press(Message::SendFile))
+            .push(
+                Container::new(log_content).width(Length::Fill).center_x(),
+            )
             .into()
     }
 }
